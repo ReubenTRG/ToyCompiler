@@ -4,7 +4,7 @@ Interpreter implementation for the Simple Compiler
 from lexer.lexer import TokenType
 from parser.ast import (
     BinOp, Number, UnaryOp, Var, Assign, 
-    Print, Compound, Block, If, While, Condition, NoOp
+    Print, Compound, Block, If, While, Condition, NoOp, For
 )
 
 class Interpreter:
@@ -38,6 +38,8 @@ class Interpreter:
             return +self.visit(node.expr)
         elif node.op.type == TokenType.MINUS:
             return -self.visit(node.expr)
+        elif node.op.type == TokenType.NOT:
+            return 0 if self.visit(node.expr) != 0 else 1 # 0 if the expression is non-zero (true), 1 if it is zero (false).
             
     def visit_Compound(self, node):
         """Execute multiple statements"""
@@ -64,27 +66,45 @@ class Interpreter:
         """Execute a while loop"""
         while self.visit(node.condition):
             self.visit(node.block)
+    
+    def visit_For(self, node):
+        """Execute a for loop"""
+        self.visit(node.init) # initialization
+        while self.visit(node.condition): # condition
+            self.visit(node.block) # loop body
+            self.visit(node.increment) # increment
             
     def visit_Condition(self, node):
         """Evaluate a condition"""
         left = self.visit(node.left)
-        right = self.visit(node.right)
-        
-        if node.op.type == TokenType.EQUAL:
-            return left == right
-        elif node.op.type == TokenType.NOT_EQUAL:
-            return left != right
-        elif node.op.type == TokenType.GREATER:
-            return left > right
-        elif node.op.type == TokenType.LESS:
-            return left < right
-        elif node.op.type == TokenType.GREATER_EQUAL:
-            return left >= right
-        elif node.op.type == TokenType.LESS_EQUAL:
-            return left <= right
-        
-        self.error(f"Invalid condition operator: {node.op.type}", node)
-            
+
+        if node.op:  # Check if there is an operator
+            right = self.visit(node.right)
+
+            if node.op.type == TokenType.EQUAL:
+                return left == right
+            elif node.op.type == TokenType.NOT_EQUAL:
+                return left != right
+            elif node.op.type == TokenType.GREATER:
+                return left > right
+            elif node.op.type == TokenType.LESS:
+                return left < right
+            elif node.op.type == TokenType.GREATER_EQUAL:
+                return left >= right
+            elif node.op.type == TokenType.LESS_EQUAL:
+                return left <= right
+            elif node.op.type == TokenType.AND:
+                return left != 0 and right != 0  # Non-zero is true
+            elif node.op.type == TokenType.OR:
+                return left != 0 or right != 0  # Non-zero is true
+            elif node.op.type == TokenType.NOT:
+                return left == 0  # 0 is false
+
+            else:
+                self.error(f"Invalid condition operator: {node.op.type}", node)
+        else:
+            return left != 0 #handles when a single variable is used as a condition
+                
     def visit_Assign(self, node):
         """Handle variable assignment"""
         var_name = node.left.value

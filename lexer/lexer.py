@@ -76,7 +76,8 @@ class Lexer:
             'print': TokenType.PRINT,
             'if': TokenType.IF,
             'else': TokenType.ELSE,
-            'while': TokenType.WHILE
+            'while': TokenType.WHILE,
+            'for': TokenType.FOR
         }
         
         token_type = keywords.get(result, TokenType.IDENTIFIER)
@@ -130,13 +131,17 @@ class Lexer:
                     return Token(TokenType.EQUAL, '==', current_line, current_column)
                 return Token(TokenType.ASSIGN, '=', current_line, current_column)
                 
+            # In lexer.py, inside the get_next_token() method:
+
             if self.current_char == '!':
+                current_line = self.line
+                current_column = self.column
                 self.advance()
                 if self.current_char == '=':  # Check for !=
                     self.advance()
                     return Token(TokenType.NOT_EQUAL, '!=', current_line, current_column)
-                self.error("Expected '=' after '!'")
-                
+                return Token(TokenType.NOT, '!', current_line, current_column) # return NOT token if no '='
+                            
             if self.current_char == '>':
                 self.advance()
                 if self.current_char == '=':  # Check for >=
@@ -151,6 +156,26 @@ class Lexer:
                     return Token(TokenType.LESS_EQUAL, '<=', current_line, current_column)
                 return Token(TokenType.LESS, '<', current_line, current_column)
                 
+            # Logical operators
+            if self.current_char == '&':
+                self.advance()
+                if self.current_char == '&':
+                    self.advance()
+                    return Token(TokenType.AND, '&&', current_line, current_column)
+                else:
+                    self.error("Expected '&' after '&'")
+
+            if self.current_char == '|':
+                self.advance()
+                if self.current_char == '|':
+                    self.advance()
+                    return Token(TokenType.OR, '||', current_line, current_column)
+                else:
+                    self.error("Expected '|' after '|'")
+
+        
+            
+            
             if self.current_char == '(':
                 self.advance()
                 return Token(TokenType.LPAREN, '(', current_line, current_column)

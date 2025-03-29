@@ -33,3 +33,17 @@ while (count < 10) {
     fib2 = next;
     count = count + 1;
 }
+
+# Test for loop
+for (i = 0; i < 5; i = i + 1) {
+    print(i);
+}
+
+# Test if statement with logical operators
+x = 10;
+y = 5;
+if (x > 5 && y < 10) {
+    print(x + y);
+} else {
+    print(x - y);
+}
