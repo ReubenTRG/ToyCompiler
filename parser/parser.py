@@ -1,0 +1,199 @@
+"""
+Parser implementation for the Simple Compiler
+"""
+from lexer.token import TokenType
+from .ast import (
+    AST, BinOp, Number, UnaryOp, Var, Assign, 
+    Print, Compound, Block, If, While, Condition, NoOp
+)
+
+class Parser:
+    """Parse tokens into an AST"""
+    
+    def __init__(self, lexer):
+        self.lexer = lexer
+        self.current_token = self.lexer.get_next_token()
+        
+    def error(self, message):
+        """Raise a syntax error"""
+        line = self.current_token.line if self.current_token else "unknown"
+        column = self.current_token.column if self.current_token else "unknown"
+        raise Exception(f"Syntax error: {message} at line {line}, column {column}")
+        
+    def eat(self, token_type):
+        """Consume the current token if it matches the expected type"""
+        if self.current_token.type == token_type:
+            token = self.current_token
+            self.current_token = self.lexer.get_next_token()
+            return token
+        else:
+            self.error(f"Expected {token_type}, got {self.current_token.type}")
+            
+    def program(self):
+        """Program is a list of statements"""
+        node = self.compound_statement()
+        return node
+            
+    def compound_statement(self):
+        """Handle multiple statements"""
+        nodes = Compound()
+        
+        while self.current_token.type != TokenType.EOF:
+            nodes.children.append(self.statement())
+            
+        return nodes
+            
+    def statement(self):
+        """Parse a statement"""
+        if self.current_token.type == TokenType.IDENTIFIER:
+            node = self.assignment_statement()
+            self.eat(TokenType.SEMICOLON)
+        elif self.current_token.type == TokenType.PRINT:
+            token = self.current_token
+            node = self.print_statement()
+            self.eat(TokenType.SEMICOLON)
+        elif self.current_token.type == TokenType.IF:
+            token = self.current_token
+            node = self.if_statement()
+        elif self.current_token.type == TokenType.WHILE:
+            token = self.current_token
+            node = self.while_statement()
+        elif self.current_token.type == TokenType.SEMICOLON:
+            # Empty statement
+            self.eat(TokenType.SEMICOLON)
+            node = NoOp()
+        else:
+            self.error(f"Unexpected token {self.current_token.type} in statement")
+            
+        return node
+    
+    def block(self):
+        """Parse a code block (between { and })"""
+        token = self.eat(TokenType.LBRACE)
+        
+        statements = []
+        while self.current_token.type != TokenType.RBRACE:
+            statements.append(self.statement())
+            
+        self.eat(TokenType.RBRACE)
+        return Block(token, statements)
+    
+    def if_statement(self):
+        """Parse an if statement"""
+        token = self.eat(TokenType.IF)
+        self.eat(TokenType.LPAREN)
+        condition = self.condition()
+        self.eat(TokenType.RPAREN)
+        
+        if_block = self.block()
+        
+        # Check for else
+        else_block = None
+        if self.current_token.type == TokenType.ELSE:
+            self.eat(TokenType.ELSE)
+            else_block = self.block()
+            
+        return If(token, condition, if_block, else_block)
+    
+    def while_statement(self):
+        """Parse a while loop"""
+        token = self.eat(TokenType.WHILE)
+        self.eat(TokenType.LPAREN)
+        condition = self.condition()
+        self.eat(TokenType.RPAREN)
+        
+        block = self.block()
+        return While(token, condition, block)
+    
+    def condition(self):
+        """Parse a condition (for if/while)"""
+        left = self.expr()
+        
+        # Operator
+        op = self.current_token
+        if op.type in (
+            TokenType.EQUAL, TokenType.NOT_EQUAL, 
+            TokenType.GREATER, TokenType.LESS,
+            TokenType.GREATER_EQUAL, TokenType.LESS_EQUAL
+        ):
+            self.eat(op.type)
+        else:
+            self.error(f"Expected comparison operator, got {op.type}")
+            
+        right = self.expr()
+        return Condition(left, op, right)
+    
+    def print_statement(self):
+        """Parse a print statement"""
+        token = self.eat(TokenType.PRINT)
+        self.eat(TokenType.LPAREN)
+        node = Print(token, self.expr())
+        self.eat(TokenType.RPAREN)
+        return node
+        
+    def assignment_statement(self):
+        """Parse an assignment statement"""
+        left = Var(self.current_token)
+        token = self.eat(TokenType.IDENTIFIER)
+        op = self.eat(TokenType.ASSIGN)
+        right = self.expr()
+        node = Assign(left, op, right)
+        return node
+    
+    def expr(self):
+        """Parse an expression"""
+        node = self.term()
+        
+        while self.current_token.type in (TokenType.PLUS, TokenType.MINUS):
+            token = self.current_token
+            if token.type == TokenType.PLUS:
+                self.eat(TokenType.PLUS)
+            else:
+                self.eat(TokenType.MINUS)
+                
+            node = BinOp(node, token, self.term())
+            
+        return node
+    
+    def term(self):
+        """Parse a term"""
+        node = self.factor()
+        
+        while self.current_token.type in (TokenType.MULTIPLY, TokenType.DIVIDE):
+            token = self.current_token
+            if token.type == TokenType.MULTIPLY:
+                self.eat(TokenType.MULTIPLY)
+            else:
+                self.eat(TokenType.DIVIDE)
+                
+            node = BinOp(node, token, self.factor())
+            
+        return node
+    
+    def factor(self):
+        """Parse a factor"""
+        token = self.current_token
+        
+        if token.type == TokenType.NUMBER:
+            self.eat(TokenType.NUMBER)
+            return Number(token)
+        elif token.type == TokenType.LPAREN:
+            self.eat(TokenType.LPAREN)
+            node = self.expr()
+            self.eat(TokenType.RPAREN)
+            return node
+        elif token.type == TokenType.PLUS:
+            self.eat(TokenType.PLUS)
+            return UnaryOp(token, self.factor())
+        elif token.type == TokenType.MINUS:
+            self.eat(TokenType.MINUS)
+            return UnaryOp(token, self.factor())
+        elif token.type == TokenType.IDENTIFIER:
+            token = self.eat(TokenType.IDENTIFIER)
+            return Var(token)
+        
+        self.error(f"Unexpected token {token.type} in factor")
+        
+    def parse(self):
+        """Start parsing"""
+        return self.program()

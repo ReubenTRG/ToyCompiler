@@ -1,0 +1,35 @@
+# This is a sample program demonstrating our language features
+
+# Variables and arithmetic operations
+x = 10;
+y = 5;
+sum = x + y;
+print(sum);
+
+# If-else statement
+if (x > y) {
+    print(x);
+} else {
+    print(y);
+}
+
+# While loop to calculate factorial
+n = 5;
+factorial = 1;
+while (n > 0) {
+    factorial = factorial * n;
+    n = n - 1;
+}
+print(factorial);
+
+# While loop to generate Fibonacci sequence
+fib1 = 0;
+fib2 = 1;
+count = 0;
+while (count < 10) {
+    print(fib1);
+    next = fib1 + fib2;
+    fib1 = fib2;
+    fib2 = next;
+    count = count + 1;
+}
