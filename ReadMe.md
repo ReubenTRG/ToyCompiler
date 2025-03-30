@@ -21,8 +21,8 @@ Features:
 	6. While loops
 
 TODO:
-	1. Implement for loops
-	2. Logic operators
+	1. Implement for loops (done by reno)
+	2. Logic operators (done by reno, {0 for false and 1 for true})
 	3. Implement arrays
 	4. Implement strings
 	5. Implement functions
