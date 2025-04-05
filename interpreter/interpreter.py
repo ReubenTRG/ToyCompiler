@@ -79,11 +79,16 @@ class Interpreter:
             self.visit(statement)
             
     def visit_If(self, node):
-        """Execute an if statement"""
         if self.visit(node.condition):
             self.visit(node.if_block)
-        elif node.else_block:
-            self.visit(node.else_block)
+        else:
+            for elseif_condition, elseif_block in node.elseif_blocks:
+                if self.visit(elseif_condition):
+                    self.visit(elseif_block)
+                    return
+            if node.else_block:
+                self.visit(node.else_block)
+
             
     def visit_While(self, node):
         """Execute a while loop"""

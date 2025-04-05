@@ -1,0 +1,9 @@
+age = 18;
+
+if (age < 10) {
+    print("Child");
+} elseif (age < 20) {
+    print("Teenager");
+} else {
+    print("Adult");
+}

@@ -26,4 +26,4 @@ TODO:
 	3. Implement arrays
 	4. Implement strings ( support for string datatype, acess to ch using index posn., concatenation using '+' )
 	5. Implement functions
-	6. Implement else-if statements
+	6. Implement else-if statements ( elseif () conditional statement support )

@@ -73,12 +73,12 @@ class Block(AST):
         self.statements = statements
         
 class If(AST):
-    """If statement node"""
-    def __init__(self, token, condition, if_block, else_block=None):
-        super().__init__(token)
+    def __init__(self, condition, if_block, elseif_blocks=None, else_block=None):
         self.condition = condition
         self.if_block = if_block
+        self.elseif_blocks = elseif_blocks or []  # List of (Condition, Block)
         self.else_block = else_block
+
         
 class While(AST):
     """While loop node"""

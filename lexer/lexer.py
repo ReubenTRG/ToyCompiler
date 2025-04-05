@@ -87,6 +87,7 @@ class Lexer:
             'print': TokenType.PRINT,
             'if': TokenType.IF,
             'else': TokenType.ELSE,
+            'elseif': TokenType.ELSEIF,
             'while': TokenType.WHILE,
             'for': TokenType.FOR
         }

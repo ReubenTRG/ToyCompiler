@@ -34,6 +34,7 @@ class TokenType:
     PRINT = 'PRINT'
     IF = 'IF'
     ELSE = 'ELSE'
+    ELSEIF = 'ELSEIF'
     WHILE = 'WHILE'
     FOR = 'FOR'
     
