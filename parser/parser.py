@@ -4,7 +4,7 @@ Parser implementation for the Simple Compiler
 from lexer.token import TokenType
 from .ast import (
     AST, BinOp, Number, UnaryOp, Var, Assign, 
-    Print, Compound, Block, If, While, Condition, NoOp, For
+    Print, Compound, Block, If, While, Condition, NoOp, For, String, StringIndex
 )
 
 class Parser:
@@ -215,6 +215,9 @@ class Parser:
         if token.type == TokenType.NUMBER:
             self.eat(TokenType.NUMBER)
             return Number(token)
+        elif token.type == TokenType.STRING:
+            self.eat(TokenType.STRING)
+            return String(token)
         elif token.type == TokenType.LPAREN:
             self.eat(TokenType.LPAREN)
             node = self.expr()
@@ -228,6 +231,11 @@ class Parser:
             return UnaryOp(token, self.factor())
         elif token.type == TokenType.IDENTIFIER:
             token = self.eat(TokenType.IDENTIFIER)
+            if self.current_token.type == TokenType.LBRACKET: #Handle string index
+                self.eat(TokenType.LBRACKET)
+                index = self.expr()
+                self.eat(TokenType.RBRACKET)
+                return StringIndex(Var(token), index)
             return Var(token)
         elif token.type == TokenType.NOT: # Handle NOT
             self.eat(TokenType.NOT)

@@ -27,6 +27,12 @@ class Number(AST):
         super().__init__(token)
         self.value = token.value
 
+class String(AST):
+    """String literal node"""
+    def __init__(self, token):
+        super().__init__(token)
+        self.value = token.value
+
 class UnaryOp(AST):
     """Unary operation node"""
     def __init__(self, op, expr):
@@ -101,3 +107,10 @@ class Condition(AST):
 class NoOp(AST):
     """Empty statement"""
     pass
+
+class StringIndex(AST):
+    """String index access node"""
+    def __init__(self, string, index):
+        super().__init__()
+        self.string = string
+        self.index = index

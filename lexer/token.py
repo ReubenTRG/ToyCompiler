@@ -6,6 +6,7 @@ class TokenType:
     """Token types for our language"""
     # Data types
     NUMBER = 'NUMBER'
+    STRING = 'STRING'
     
     # Operators
     PLUS = 'PLUS'
@@ -16,6 +17,9 @@ class TokenType:
     # Parentheses
     LPAREN = 'LPAREN'
     RPAREN = 'RPAREN'
+
+    LBRACKET = 'LBRACKET'
+    RBRACKET = 'RBRACKET'
     
     # Braces for code blocks
     LBRACE = 'LBRACE'

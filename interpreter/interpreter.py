@@ -4,7 +4,7 @@ Interpreter implementation for the Simple Compiler
 from lexer.lexer import TokenType
 from parser.ast import (
     BinOp, Number, UnaryOp, Var, Assign, 
-    Print, Compound, Block, If, While, Condition, NoOp, For
+    Print, Compound, Block, If, While, Condition, NoOp, For, String, StringIndex
 )
 
 class Interpreter:
@@ -17,7 +17,14 @@ class Interpreter:
     def visit_BinOp(self, node):
         """Evaluate a binary operation"""
         if node.op.type == TokenType.PLUS:
-            return self.visit(node.left) + self.visit(node.right)
+            left_val = self.visit(node.left)
+            right_val = self.visit(node.right)
+            if isinstance(left_val, str) and isinstance(right_val, str):
+                return left_val + right_val
+            elif isinstance(left_val, (int, float)) and isinstance(right_val, (int, float)):
+                return left_val + right_val
+            else:
+                self.error("Invalid operand types for +", node)
         elif node.op.type == TokenType.MINUS:
             return self.visit(node.left) - self.visit(node.right)
         elif node.op.type == TokenType.MULTIPLY:
@@ -31,6 +38,10 @@ class Interpreter:
     def visit_Number(self, node):
         """Return the value of a number node"""
         return node.value
+
+    def visit_String(self, node):
+        """Return the value of a string node"""
+        return node.value
         
     def visit_UnaryOp(self, node):
         """Evaluate a unary operation"""
@@ -40,6 +51,18 @@ class Interpreter:
             return -self.visit(node.expr)
         elif node.op.type == TokenType.NOT:
             return 0 if self.visit(node.expr) != 0 else 1 # 0 if the expression is non-zero (true), 1 if it is zero (false).
+
+    def visit_StringIndex(self, node):
+        """Handle string index access"""
+        string = self.visit(node.string)
+        index = int(self.visit(node.index))
+        if not isinstance(string, str):
+            self.error("String index access on non-string type", node)
+        if not isinstance(index, int):
+            self.error("String index must be integer", node)
+        if index < 0 or index >= len(string):
+            self.error("String index out of range", node)
+        return string[index]
             
     def visit_Compound(self, node):
         """Execute multiple statements"""

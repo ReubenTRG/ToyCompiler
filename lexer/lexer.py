@@ -1,6 +1,3 @@
-"""
-Lexer implementation for the Simple Compiler
-"""
 from .token import Token, TokenType
 
 class Lexer:
@@ -60,6 +57,20 @@ class Lexer:
             return Token(TokenType.NUMBER, value, line, column)
         except ValueError:
             self.error(f"Invalid number format: {result}")
+
+    def get_string(self):
+        """Parse a string from the input"""
+        result = ""
+        line = self.line
+        column = self.column
+        self.advance() # Skip the first quote
+        while self.current_char and self.current_char != '"':
+            result += self.current_char
+            self.advance()
+        if self.current_char != '"':
+            self.error("Unterminated string")
+        self.advance() # Skip the last quote
+        return Token(TokenType.STRING, result, line, column)
     
     def get_identifier(self):
         """Parse an identifier (variable name, keyword)"""
@@ -99,6 +110,9 @@ class Lexer:
             # Numbers
             if self.current_char.isdigit():
                 return self.get_number()
+            #Strings
+            if self.current_char == '"':
+                return self.get_string()
                 
             # Identifiers and keywords
             if self.current_char.isalpha() or self.current_char == '_':
@@ -191,6 +205,14 @@ class Lexer:
             if self.current_char == '}':
                 self.advance()
                 return Token(TokenType.RBRACE, '}', current_line, current_column)
+                
+            if self.current_char == '[':
+                self.advance()
+                return Token(TokenType.LBRACKET, '[', current_line, current_column)
+
+            if self.current_char == ']':
+                self.advance()
+                return Token(TokenType.RBRACKET, ']', current_line, current_column)
                 
             if self.current_char == ';':
                 self.advance()
