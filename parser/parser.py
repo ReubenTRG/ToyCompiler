@@ -4,7 +4,7 @@ Parser implementation for the Simple Compiler
 from lexer.token import TokenType
 from .ast import (
     AST, BinOp, Number, UnaryOp, Var, Assign, 
-    Print, Compound, Block, If, While, Condition, NoOp
+    Print, Compound, Block, If, While, Condition, NoOp, For
 )
 
 class Parser:
@@ -58,6 +58,9 @@ class Parser:
         elif self.current_token.type == TokenType.WHILE:
             token = self.current_token
             node = self.while_statement()
+        elif self.current_token.type == TokenType.FOR: # Add for loop parsing
+            token = self.current_token
+            node = self.for_statement()
         elif self.current_token.type == TokenType.SEMICOLON:
             # Empty statement
             self.eat(TokenType.SEMICOLON)
@@ -105,24 +108,59 @@ class Parser:
         block = self.block()
         return While(token, condition, block)
     
+    def for_statement(self):
+        """Parse a for loop"""
+        token = self.eat(TokenType.FOR)
+        self.eat(TokenType.LPAREN)
+        
+        init = self.assignment_statement() # initialization statement
+        self.eat(TokenType.SEMICOLON)
+
+        condition = self.condition() # condition statement, using the same condition parsing.
+        self.eat(TokenType.SEMICOLON)
+
+        increment = self.assignment_statement() # increment statement
+        self.eat(TokenType.RPAREN)
+        
+        block = self.block()
+        return For(token, init, condition, increment, block)
+    
     def condition(self):
         """Parse a condition (for if/while)"""
+        print(f"Parsing condition. Current token: {self.current_token}")
         left = self.expr()
-        
-        # Operator
-        op = self.current_token
-        if op.type in (
-            TokenType.EQUAL, TokenType.NOT_EQUAL, 
+        print(f"After expr. Left: {left}")
+
+        # Handle comparison operators first
+        if self.current_token.type in (
+            TokenType.EQUAL, TokenType.NOT_EQUAL,
             TokenType.GREATER, TokenType.LESS,
             TokenType.GREATER_EQUAL, TokenType.LESS_EQUAL
         ):
+            op = self.current_token
             self.eat(op.type)
-        else:
-            self.error(f"Expected comparison operator, got {op.type}")
-            
-        right = self.expr()
-        return Condition(left, op, right)
-    
+            right = self.expr()
+            left = Condition(left, op, right)
+            print(f"After comparison. Left: {left}")
+
+        # Handle logical operators (AND, OR)
+        while self.current_token.type in (TokenType.AND, TokenType.OR):
+            op = self.current_token
+            self.eat(op.type)
+            right = self.expr()
+            left = Condition(left, op, right)
+            print(f"After logical op. Left: {left}")
+
+        # Handle NOT operator
+        if self.current_token.type == TokenType.NOT:
+            op = self.current_token
+            self.eat(TokenType.NOT)
+            left = Condition(left, op)
+            print(f"After NOT. Left: {left}")
+
+        print(f"Condition returning: {left}")
+        return left
+        
     def print_statement(self):
         """Parse a print statement"""
         token = self.eat(TokenType.PRINT)
@@ -191,7 +229,10 @@ class Parser:
         elif token.type == TokenType.IDENTIFIER:
             token = self.eat(TokenType.IDENTIFIER)
             return Var(token)
-        
+        elif token.type == TokenType.NOT: # Handle NOT
+            self.eat(TokenType.NOT)
+            return UnaryOp(token, self.factor())
+
         self.error(f"Unexpected token {token.type} in factor")
         
     def parse(self):

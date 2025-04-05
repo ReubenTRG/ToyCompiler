@@ -31,6 +31,7 @@ class TokenType:
     IF = 'IF'
     ELSE = 'ELSE'
     WHILE = 'WHILE'
+    FOR = 'FOR'
     
     # Comparison operators
     EQUAL = 'EQUAL'
@@ -39,6 +40,11 @@ class TokenType:
     LESS = 'LESS'
     GREATER_EQUAL = 'GREATER_EQUAL'
     LESS_EQUAL = 'LESS_EQUAL'
+
+    # Logical operators
+    AND = 'AND'  # &&
+    OR = 'OR'    # ||
+    NOT = 'NOT'  # !
     
     # End of file
     EOF = 'EOF'

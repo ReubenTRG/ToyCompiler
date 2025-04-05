@@ -80,6 +80,15 @@ class While(AST):
         super().__init__(token)
         self.condition = condition
         self.block = block
+
+class For(AST):
+    """For loop node"""
+    def __init__(self, token, init, condition, increment, block):
+        super().__init__(token)
+        self.init = init
+        self.condition = condition
+        self.increment = increment
+        self.block = block
         
 class Condition(AST):
     """Condition node (for if and while statements)"""
