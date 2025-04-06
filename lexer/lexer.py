@@ -89,7 +89,9 @@ class Lexer:
             'else': TokenType.ELSE,
             'elseif': TokenType.ELSEIF,
             'while': TokenType.WHILE,
-            'for': TokenType.FOR
+            'for': TokenType.FOR,
+            'function': TokenType.FUNCTION,  # Add function keyword
+            'return': TokenType.RETURN       # Add return keyword
         }
         
         token_type = keywords.get(result, TokenType.IDENTIFIER)
@@ -218,6 +220,10 @@ class Lexer:
             if self.current_char == ';':
                 self.advance()
                 return Token(TokenType.SEMICOLON, ';', current_line, current_column)
+            
+            if self.current_char == ',':
+                self.advance()
+                return Token(TokenType.COMMA, ',', current_line, current_column)
                 
             # Unrecognized character
             self.error(f"Unexpected character: {self.current_char}")

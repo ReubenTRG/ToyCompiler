@@ -4,7 +4,8 @@ Parser implementation for the Simple Compiler
 from lexer.token import TokenType
 from .ast import (
     AST, BinOp, Number, UnaryOp, Var, Assign, 
-    Print, Compound, Block, If, While, Condition, NoOp, For, String, StringIndex
+    Print, Compound, Block, If, While, Condition, NoOp, For, String, StringIndex, Array, ArrayAccess,
+    FunctionDecl, FunctionCall, Return
 )
 
 class Parser:
@@ -46,8 +47,13 @@ class Parser:
     def statement(self):
         """Parse a statement"""
         if self.current_token.type == TokenType.IDENTIFIER:
-            node = self.assignment_statement()
-            self.eat(TokenType.SEMICOLON)
+            # Check if it's a function call or assignment
+            if self.lexer.peek() == '(':  # Look ahead for function call
+                node = self.function_call()
+                self.eat(TokenType.SEMICOLON)
+            else:
+                node = self.assignment_statement()
+                self.eat(TokenType.SEMICOLON)
         elif self.current_token.type == TokenType.PRINT:
             token = self.current_token
             node = self.print_statement()
@@ -58,9 +64,16 @@ class Parser:
         elif self.current_token.type == TokenType.WHILE:
             token = self.current_token
             node = self.while_statement()
-        elif self.current_token.type == TokenType.FOR: # Add for loop parsing
+        elif self.current_token.type == TokenType.FOR:
             token = self.current_token
             node = self.for_statement()
+        elif self.current_token.type == TokenType.FUNCTION:
+            token = self.current_token
+            node = self.function_declaration()
+        elif self.current_token.type == TokenType.RETURN:
+            token = self.current_token
+            node = self.return_statement()
+            self.eat(TokenType.SEMICOLON)
         elif self.current_token.type == TokenType.SEMICOLON:
             # Empty statement
             self.eat(TokenType.SEMICOLON)
@@ -69,6 +82,71 @@ class Parser:
             self.error(f"Unexpected token {self.current_token.type} in statement")
             
         return node
+
+    # Add these new parsing methods
+    def function_declaration(self):
+        """Parse a function declaration"""
+        token = self.eat(TokenType.FUNCTION)
+        name = self.current_token.value
+        self.eat(TokenType.IDENTIFIER)
+        
+        # Parse parameters
+        self.eat(TokenType.LPAREN)
+        params = []
+        
+        # Handle empty parameter list
+        if self.current_token.type != TokenType.RPAREN:
+            # First parameter
+            param_name = self.current_token.value
+            self.eat(TokenType.IDENTIFIER)
+            params.append(param_name)
+            
+            # Additional parameters
+            while self.current_token.type == TokenType.COMMA:
+                self.eat(TokenType.COMMA)
+                param_name = self.current_token.value
+                self.eat(TokenType.IDENTIFIER)
+                params.append(param_name)
+        
+        self.eat(TokenType.RPAREN)
+        
+        # Parse function body
+        body = self.block()
+        
+        return FunctionDecl(token, name, params, body)
+
+    def function_call(self):
+        """Parse a function call"""
+        name = self.current_token.value
+        token = self.eat(TokenType.IDENTIFIER)
+        
+        self.eat(TokenType.LPAREN)
+        args = []
+        
+        # Handle empty argument list
+        if self.current_token.type != TokenType.RPAREN:
+            # First argument
+            args.append(self.expr())
+            
+            # Additional arguments
+            while self.current_token.type == TokenType.COMMA:
+                self.eat(TokenType.COMMA)
+                args.append(self.expr())
+        
+        self.eat(TokenType.RPAREN)
+        
+        return FunctionCall(token, name, args)
+
+    def return_statement(self):
+        """Parse a return statement"""
+        token = self.eat(TokenType.RETURN)
+        
+        # Check if there is an expression to return
+        if self.current_token.type != TokenType.SEMICOLON:
+            expr = self.expr()
+            return Return(token, expr)
+        else:
+            return Return(token)
     
     def block(self):
         """Parse a code block (between { and })"""
@@ -214,7 +292,6 @@ class Parser:
             node = BinOp(node, token, self.factor())
             
         return node
-    
     def factor(self):
         """Parse a factor"""
         token = self.current_token
@@ -230,6 +307,8 @@ class Parser:
             node = self.expr()
             self.eat(TokenType.RPAREN)
             return node
+        elif token.type == TokenType.LBRACKET:  # Array literal
+            return self.array_literal()
         elif token.type == TokenType.PLUS:
             self.eat(TokenType.PLUS)
             return UnaryOp(token, self.factor())
@@ -238,17 +317,56 @@ class Parser:
             return UnaryOp(token, self.factor())
         elif token.type == TokenType.IDENTIFIER:
             token = self.eat(TokenType.IDENTIFIER)
-            if self.current_token.type == TokenType.LBRACKET: #Handle string index
+            # Check if it's a function call
+            if self.current_token.type == TokenType.LPAREN:
+                self.eat(TokenType.LPAREN)
+                args = []
+                
+                # Handle empty argument list
+                if self.current_token.type != TokenType.RPAREN:
+                    # First argument
+                    args.append(self.expr())
+                    
+                    # Additional arguments
+                    while self.current_token.type == TokenType.COMMA:
+                        self.eat(TokenType.COMMA)
+                        args.append(self.expr())
+                
+                self.eat(TokenType.RPAREN)
+                return FunctionCall(token, token.value, args)
+            # Handle array access or string index
+            elif self.current_token.type == TokenType.LBRACKET:
                 self.eat(TokenType.LBRACKET)
                 index = self.expr()
                 self.eat(TokenType.RBRACKET)
-                return StringIndex(Var(token), index)
+                return ArrayAccess(Var(token), index)
             return Var(token)
-        elif token.type == TokenType.NOT: # Handle NOT
+        elif token.type == TokenType.NOT:
             self.eat(TokenType.NOT)
             return UnaryOp(token, self.factor())
 
         self.error(f"Unexpected token {token.type} in factor")
+
+    def array_literal(self):
+        """Parse an array literal [elem1, elem2, ...]"""
+        token = self.eat(TokenType.LBRACKET)
+        elements = []
+        
+        # Handle empty array
+        if self.current_token.type == TokenType.RBRACKET:
+            self.eat(TokenType.RBRACKET)
+            return Array(token, elements)
+        
+        # Add first element
+        elements.append(self.expr())
+        
+        # Add remaining elements
+        while self.current_token.type == TokenType.COMMA:
+            self.eat(TokenType.COMMA)
+            elements.append(self.expr())
+        
+        self.eat(TokenType.RBRACKET)
+        return Array(token, elements)
         
     def parse(self):
         """Start parsing"""

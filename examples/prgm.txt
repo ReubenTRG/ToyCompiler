@@ -1,9 +1,53 @@
-age = 18;
+# Example program demonstrating arrays and functions
 
-if (age < 10) {
-    print("Child");
-} elseif (age < 20) {
-    print("Teenager");
-} else {
-    print("Adult");
+# Array examples
+arr = [1, 2, 3, 4, 5];
+print(arr[0]); # Should print 1
+print(arr[4]); # Should print 5
+
+# Modify array element
+print(arr[2]); # Should print 10
+
+# Array with mixed types
+mixed = ["hello", 42, "world"];
+print(mixed[0]);
+print(mixed[1]);
+
+# Function to sum an array
+function sum(nums) {
+    total = 0;
+    for (i = 0; i < 5; i = i + 1) {
+        total = total + nums[i];
+    }
+    return total;
 }
+
+result = sum(arr);
+print(result); # Should print 15
+
+# Function with multiple parameters
+function add(a, b) {
+    return a + b;
+}
+
+print(add(5, 10)); # Should print 15
+
+# Recursive function to calculate factorial
+function factorial(n) {
+    res = 1;
+    for (i = 1; i <= n; i = i + 1) {
+        res = res * i;
+    }
+    return res;
+}
+
+print(factorial(5)); # Should print 120
+
+# Function using arrays
+function getAverage(nums) {
+    count = 5;
+    sum_ = sum(nums);
+    return sum_ / count;
+}
+
+print(getAverage(arr)); # Should print average of array elements

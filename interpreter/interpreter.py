@@ -12,7 +12,56 @@ class Interpreter:
     
     def __init__(self, parser):
         self.parser = parser
-        self.variables = {}  # Symbol table for variables
+        self.variables = {}  # Global symbol table for variables
+        self.functions = {}  # Symbol table for functions
+        
+    # Add these methods to handle functions
+    
+    def visit_FunctionDecl(self, node):
+        """Store a function declaration"""
+        self.functions[node.name] = node
+        
+    def visit_FunctionCall(self, node):
+        """Execute a function call"""
+        function_name = node.name
+        
+        if function_name not in self.functions:
+            self.error(f"Undefined function: {function_name}", node)
+            
+        function_node = self.functions[function_name]
+        
+        # Check argument count
+        if len(node.args) != len(function_node.params):
+            self.error(f"Function {function_name} expects {len(function_node.params)} arguments, got {len(node.args)}", node)
+            
+        # Save current scope
+        saved_variables = self.variables.copy()
+        
+        # Create new scope with parameters
+        # self.variables = {}
+        
+        # Evaluate arguments and assign to parameters
+        for param_name, arg_node in zip(function_node.params, node.args):
+            self.variables[param_name] = self.visit(arg_node)
+            
+        # Execute function body
+        result = None
+        try:
+            self.visit(function_node.body)
+        except ReturnValue as rv:
+            result = rv.value
+            
+        # Restore original scope
+        self.variables = saved_variables
+        
+        return result
+
+    def visit_Return(self, node):
+        """Handle return statement"""
+        value = None
+        if node.expr:
+            value = self.visit(node.expr)
+        raise ReturnValue(value)
         
     def visit_BinOp(self, node):
         """Evaluate a binary operation"""
@@ -168,4 +217,33 @@ class Interpreter:
     def interpret(self):
         """Start interpretation"""
         tree = self.parser.parse()
-        self.visit(tree)
+        try:
+            self.visit(tree)
+        except ReturnValue as rv:
+            # Function returned outside any function - likely from global scope
+            print(f"Warning: Return statement outside of function with value: {rv.value}")
+
+    def visit_Array(self, node):
+        """Evaluate an array literal"""
+        elements = [self.visit(element) for element in node.elements]
+        return elements
+
+    def visit_ArrayAccess(self, node):
+        """Handle array element access"""
+        array = self.visit(node.array)
+        index = int(self.visit(node.index))
+        
+        if not isinstance(array, list):
+            self.error("Array access on non-array type", node)
+        if not isinstance(index, int):
+            self.error("Array index must be integer", node)
+        if index < 0 or index >= len(array):
+            self.error("Array index out of range", node)
+        
+        return array[index]
+    
+class ReturnValue(Exception):
+    """Custom exception to handle return statements"""
+    def __init__(self, value=None):
+        self.value = value
+        super().__init__(str(value))

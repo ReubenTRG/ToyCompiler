@@ -4,12 +4,15 @@
 x = 10;
 y = 5;
 sum = x + y;
+print("sum");
 print(sum);
 
 # If-else statement
 if (x > y) {
+    print("x is greater than y");
     print(x);
 } else {
+    print("y is greater than x");
     print(y);
 }
 
@@ -20,12 +23,14 @@ while (n > 0) {
     factorial = factorial * n;
     n = n - 1;
 }
+print("factorial");
 print(factorial);
 
 # While loop to generate Fibonacci sequence
 fib1 = 0;
 fib2 = 1;
 count = 0;
+print("Fibonacci sequence:");
 while (count < 10) {
     print(fib1);
     next = fib1 + fib2;
@@ -35,15 +40,37 @@ while (count < 10) {
 }
 
 # Test for loop
+print("For loop:");
 for (i = 0; i < 5; i = i + 1) {
     print(i);
 }
 
 # Test if statement with logical operators
-x = 10;
-y = 5;
-if (x > 5 && y < 10) {
+x = 1;
+y = 0;
+print("Logical operators:");
+if (x && y) {
     print(x + y);
 } else {
     print(x - y);
 }
+
+# Test for elseif statement
+x = 10;
+y = 5;
+if (x == y) {
+    print("x is equal to y");
+} elseif (x != y) {
+    print("x is not equal to y");
+} else {
+    print("Invalid");
+}
+
+a = "Hello" + "ing";
+print(a);
+
+# Test for loop with string indexing
+# string = "Hello, World!";
+# for (i = 0; i < 13; i = i + 2) {
+#    print(string[i]);
+# }

@@ -24,6 +24,8 @@ class TokenType:
     # Braces for code blocks
     LBRACE = 'LBRACE'
     RBRACE = 'RBRACE'
+
+    COMMA = 'COMMA'
     
     # Variables and assignments
     IDENTIFIER = 'IDENTIFIER'
@@ -50,6 +52,9 @@ class TokenType:
     AND = 'AND'  # &&
     OR = 'OR'    # ||
     NOT = 'NOT'  # !
+
+    FUNCTION = 'FUNCTION'  # 'function' keyword
+    RETURN = 'RETURN'      # 'return' keyword
     
     # End of file
     EOF = 'EOF'

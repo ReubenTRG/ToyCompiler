@@ -114,3 +114,37 @@ class StringIndex(AST):
         super().__init__()
         self.string = string
         self.index = index
+
+class Array(AST):
+    """Array literal node"""
+    def __init__(self, token, elements):
+        super().__init__(token)
+        self.elements = elements  # List of expressions
+
+class ArrayAccess(AST):
+    """Array element access node"""
+    def __init__(self, array, index):
+        super().__init__()
+        self.array = array
+        self.index = index
+
+class FunctionDecl(AST):
+    """Function declaration node"""
+    def __init__(self, token, name, params, body):
+        super().__init__(token)
+        self.name = name          # Function name (string)
+        self.params = params      # List of parameter names
+        self.body = body          # Block of statements
+
+class FunctionCall(AST):
+    """Function call node"""
+    def __init__(self, token, name, args):
+        super().__init__(token)
+        self.name = name          # Function name (string)
+        self.args = args          # List of argument expressions
+
+class Return(AST):
+    """Return statement node"""
+    def __init__(self, token, expr=None):
+        super().__init__(token)
+        self.expr = expr          # Expression to return (can be None)
