@@ -1,5 +1,32 @@
-function test(x) {
-	print(x);
+arr = [1, 2, 3, 4, 5];
+
+# Function to sum an array
+function sum(nums) {
+    total = 0;
+    for (i = 0; i < 5; i = i + 1) {
+        total = total + nums[i];
+    }
+    return total;
 }
 
-hi = test("hello");
+print("Sum of array elements:");
+result = sum(arr);
+print(result); # Should print 15
+
+# Function with multiple parameters
+function add(a, b) {
+    return a + b;
+}
+
+print("Addition of 5 and 10 using function:");
+print(add(5, 10)); # Should print 15
+
+# Function using arrays
+function getAverage(nums) {
+    count = 5;
+    sum_ = sum(nums);
+    return sum_ / count;
+}
+
+print("Average of array elements using function:");
+print(getAverage(arr)); # Should print average of array elements

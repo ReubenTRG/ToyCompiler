@@ -38,14 +38,14 @@ python main.py <input_file>
    - Support for string datatype  
    - Character access by index (e.g., `str[0]`)  
    - Concatenation using `+`  
-10. ✅ **Else-If Statements** (`elseif (...)`) *(Implemented by Sabharish)*  
-
+10. ✅ **Else-If Statements** (`elseif (...)`) *(Implemented by Sabharish)*
+11. ✅ **Implement Arrays** (`[1, "2", ...]`) *(Implemented by Roshan)*
+12. ✅ **Implement Functions** (`function func(...) {...}`) *(Implemented by Roshan)*
 ---
 
 ## 🛠️ TODO
 
-*	**Implement Arrays**
-*	**Implement Functions**
+*	**No plans for now!**
 
 ---
 
