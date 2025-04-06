@@ -1,29 +1,54 @@
+# 🧸 Toy Compiler using Python
 
----------------------------------
-	Toy Compiler using Python
----------------------------------
+A simple toy compiler built with Python that supports a range of basic programming constructs. Perfect for learning how compilers work!
 
-Requirements:
-	Python 3.x
+---
 
-To run interactive mode, run the following command:
-	python main.py
+## 📌 Requirements
+- Python 3.x
 
-To run the program as a file, run the following command:
-	python main.py <input_file>
+---
 
-Features:
-	1. Variables and assignments
-	2. Arithmetic operations
-	3. Comparison operator
-	4. Print function
-	5. If-else statements
-	6. While loops
+## 🚀 Getting Started
 
-TODO:
-	1. Implement for loops (done by reno)
-	2. Logic operators (done by reno, {0 for false and 1 for true})
-	3. Implement arrays
-	4. Implement strings ( support for string datatype, acess to ch using index posn., concatenation using '+' )
-	5. Implement functions
-	6. Implement else-if statements ( elseif () conditional statement support )
+### ▶️ Interactive Mode
+```bash
+python main.py
+```
+
+### 📄 Running with Input File
+```bash
+python main.py <input_file>
+```
+
+---
+
+## ✨ Features Implemented
+
+1. ✅ **Variables & Assignments**  
+2. ✅ **Arithmetic Operations** (`+`, `-`, `*`, `/`, `%`)  
+3. ✅ **Comparison Operators** (`==`, `!=`, `<`, `>`, `<=`, `>=`)  
+4. ✅ **Print Function** (`print`)  
+5. ✅ **If-Else Statements**  
+6. ✅ **While Loops**  
+7. ✅ **For Loops** *(Implemented by Reno)*  
+8. ✅ **Logical Operators** (`and`, `or`, `not`)  
+   - Uses `0` for `False`, `1` for `True` *(Implemented by Reno)*  
+9. ✅ **Strings** *(Implemented by Sabharish)*  
+   - Support for string datatype  
+   - Character access by index (e.g., `str[0]`)  
+   - Concatenation using `+`  
+10. ✅ **Else-If Statements** (`elseif (...)`) *(Implemented by Sabharish)*  
+
+---
+
+## 🛠️ TODO
+
+*	**Implement Arrays**
+*	**Implement Functions**
+
+---
+
+## 👥 Contributors
+- **Reno** — For Loops & Logic Operators
+- **Sabharish** — Strings & Else-If Support
