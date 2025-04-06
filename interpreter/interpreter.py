@@ -4,7 +4,8 @@ Interpreter implementation for the Simple Compiler
 from lexer.lexer import TokenType
 from parser.ast import (
     BinOp, Number, UnaryOp, Var, Assign, 
-    Print, Compound, Block, If, While, Condition, NoOp, For, String, StringIndex
+    Print, Compound, Block, If, While, Condition, NoOp, For, String, StringIndex,
+    ArrayDecl, ArrayAccess, ArrayAssign, FuncDecl, FuncCall, Return
 )
 
 class Interpreter:
@@ -13,9 +14,10 @@ class Interpreter:
     def __init__(self, parser):
         self.parser = parser
         self.variables = {}  # Symbol table for variables
-        
+        self.functions = {}  # Function name -> FuncDecl
+        self.call_stack = [] # Call stack for function calls
+
     def visit_BinOp(self, node):
-        """Evaluate a binary operation"""
         if node.op.type == TokenType.PLUS:
             left_val = self.visit(node.left)
             right_val = self.visit(node.right)
@@ -34,26 +36,22 @@ class Interpreter:
             if right_val == 0:
                 self.error("Division by zero", node)
             return self.visit(node.left) / right_val
-            
+
     def visit_Number(self, node):
-        """Return the value of a number node"""
         return node.value
 
     def visit_String(self, node):
-        """Return the value of a string node"""
         return node.value
         
     def visit_UnaryOp(self, node):
-        """Evaluate a unary operation"""
         if node.op.type == TokenType.PLUS:
             return +self.visit(node.expr)
         elif node.op.type == TokenType.MINUS:
             return -self.visit(node.expr)
         elif node.op.type == TokenType.NOT:
-            return 0 if self.visit(node.expr) != 0 else 1 # 0 if the expression is non-zero (true), 1 if it is zero (false).
+            return 0 if self.visit(node.expr) != 0 else 1
 
     def visit_StringIndex(self, node):
-        """Handle string index access"""
         string = self.visit(node.string)
         index = int(self.visit(node.index))
         if not isinstance(string, str):
@@ -63,52 +61,80 @@ class Interpreter:
         if index < 0 or index >= len(string):
             self.error("String index out of range", node)
         return string[index]
-            
+    
+    def visit_ArrayDecl(self, node):
+        name = node.name.value
+        size = self.visit(node.size_expr)
+        if not isinstance(size, int) or size < 0:
+            self.error("Array size must be a non-negative integer", node)
+        self.variables[name] = [0] * size
+
+    def visit_ArrayAccess(self, node):
+        array = self.visit(node.array)
+        index = self.visit(node.index)
+        if not isinstance(array, list):
+            self.error("Trying to index a non-array", node)
+        if not isinstance(index, int):
+            self.error("Array index must be an integer", node)
+        if index < 0 or index >= len(array):
+            self.error("Array index out of bounds", node)
+        return array[index]
+
+    def visit_ArrayAssign(self, node):
+        array = self.visit(node.array)
+        index = self.visit(node.index)
+        value = self.visit(node.value)
+        if not isinstance(array, list):
+            self.error("Trying to assign to a non-array", node)
+        if not isinstance(index, int):
+            self.error("Array index must be an integer", node)
+        if index < 0 or index >= len(array):
+            self.error("Array index out of bounds", node)
+        array[index] = value
+
     def visit_Compound(self, node):
-        """Execute multiple statements"""
         for child in node.children:
-            self.visit(child)
-            
+            result = self.visit(child)
+            if isinstance(result, ReturnSignal):
+                return result
+
     def visit_NoOp(self, node):
-        """Do nothing for empty statements"""
         pass
-            
+
     def visit_Block(self, node):
-        """Execute a block of statements"""
         for statement in node.statements:
-            self.visit(statement)
-            
+            result = self.visit(statement)
+            if isinstance(result, ReturnSignal):
+                return result
+
     def visit_If(self, node):
         if self.visit(node.condition):
-            self.visit(node.if_block)
+            return self.visit(node.if_block)
         else:
             for elseif_condition, elseif_block in node.elseif_blocks:
                 if self.visit(elseif_condition):
-                    self.visit(elseif_block)
-                    return
+                    return self.visit(elseif_block)
             if node.else_block:
-                self.visit(node.else_block)
+                return self.visit(node.else_block)
 
-            
     def visit_While(self, node):
-        """Execute a while loop"""
         while self.visit(node.condition):
-            self.visit(node.block)
-    
+            result = self.visit(node.block)
+            if isinstance(result, ReturnSignal):
+                return result
+
     def visit_For(self, node):
-        """Execute a for loop"""
-        self.visit(node.init) # initialization
-        while self.visit(node.condition): # condition
-            self.visit(node.block) # loop body
-            self.visit(node.increment) # increment
-            
+        self.visit(node.init)
+        while self.visit(node.condition):
+            result = self.visit(node.block)
+            if isinstance(result, ReturnSignal):
+                return result
+            self.visit(node.increment)
+
     def visit_Condition(self, node):
-        """Evaluate a condition"""
         left = self.visit(node.left)
-
-        if node.op:  # Check if there is an operator
+        if node.op:
             right = self.visit(node.right)
-
             if node.op.type == TokenType.EQUAL:
                 return left == right
             elif node.op.type == TokenType.NOT_EQUAL:
@@ -122,50 +148,77 @@ class Interpreter:
             elif node.op.type == TokenType.LESS_EQUAL:
                 return left <= right
             elif node.op.type == TokenType.AND:
-                return left != 0 and right != 0  # Non-zero is true
+                return left != 0 and right != 0
             elif node.op.type == TokenType.OR:
-                return left != 0 or right != 0  # Non-zero is true
+                return left != 0 or right != 0
             elif node.op.type == TokenType.NOT:
-                return left == 0  # 0 is false
-
+                return left == 0
             else:
                 self.error(f"Invalid condition operator: {node.op.type}", node)
         else:
-            return left != 0 #handles when a single variable is used as a condition
-                
+            return left != 0
+
     def visit_Assign(self, node):
-        """Handle variable assignment"""
         var_name = node.left.value
         self.variables[var_name] = self.visit(node.right)
-        
+
     def visit_Var(self, node):
-        """Look up variable value"""
         var_name = node.value
         if var_name not in self.variables:
             self.error(f"Undefined variable: {var_name}", node)
         return self.variables[var_name]
-        
+
     def visit_Print(self, node):
-        """Handle print statements"""
         value = self.visit(node.expr)
         print(value)
-        
+
+    def visit_FuncDecl(self, node):
+        self.functions[node.name.value] = node
+
+    def visit_FuncCall(self, node):
+        func_name = node.name.value
+        if func_name not in self.functions:
+            self.error(f"Function '{func_name}' not defined", node)
+        func = self.functions[func_name]
+
+        if len(node.args) != len(func.params):
+            self.error("Argument count mismatch", node)
+
+        # Save current variable scope
+        saved_variables = self.variables.copy()
+
+        # Setup new scope
+        self.variables = {}
+        for param, arg in zip(func.params, node.args):
+            self.variables[param.value] = self.visit(arg)
+
+        result = self.visit(func.body)
+        self.variables = saved_variables
+
+        if isinstance(result, ReturnSignal):
+            return result.value
+        return None
+
+    def visit_Return(self, node):
+        return ReturnSignal(self.visit(node.value))
+
     def visit(self, node):
-        """Visit a node"""
         method_name = f'visit_{type(node).__name__}'
         visitor = getattr(self, method_name, self.generic_visit)
         return visitor(node)
-        
+
     def generic_visit(self, node):
-        """Handle unimplemented node types"""
         self.error(f"No visit_{type(node).__name__} method", node)
-    
+
     def error(self, message, node=None):
-        """Raise an interpreter error"""
         position = node.position if node else "unknown position"
         raise Exception(f"Runtime error: {message} at {position}")
-        
+
     def interpret(self):
-        """Start interpretation"""
         tree = self.parser.parse()
         self.visit(tree)
+
+
+class ReturnSignal:
+    def __init__(self, value):
+        self.value = value

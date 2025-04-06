@@ -4,6 +4,7 @@ Token definitions for the Simple Compiler
 
 class TokenType:
     """Token types for our language"""
+    
     # Data types
     NUMBER = 'NUMBER'
     STRING = 'STRING'
@@ -17,11 +18,12 @@ class TokenType:
     # Parentheses
     LPAREN = 'LPAREN'
     RPAREN = 'RPAREN'
-
+    
+    # Brackets (for arrays and indexing)
     LBRACKET = 'LBRACKET'
     RBRACKET = 'RBRACKET'
     
-    # Braces for code blocks
+    # Braces (for code blocks)
     LBRACE = 'LBRACE'
     RBRACE = 'RBRACE'
     
@@ -29,6 +31,7 @@ class TokenType:
     IDENTIFIER = 'IDENTIFIER'
     ASSIGN = 'ASSIGN'
     SEMICOLON = 'SEMICOLON'
+    COMMA = 'COMMA'  # For function parameters or array elements
     
     # Keywords
     PRINT = 'PRINT'
@@ -38,21 +41,30 @@ class TokenType:
     WHILE = 'WHILE'
     FOR = 'FOR'
     
+    # Function and array-related keywords
+    FUNCTION = 'FUNCTION'
+    RETURN = 'RETURN'
+    ARRAY = 'ARRAY'  # Optional: if your language uses an 'array' keyword
+    
     # Comparison operators
-    EQUAL = 'EQUAL'
-    NOT_EQUAL = 'NOT_EQUAL'
-    GREATER = 'GREATER'
-    LESS = 'LESS'
-    GREATER_EQUAL = 'GREATER_EQUAL'
-    LESS_EQUAL = 'LESS_EQUAL'
+    EQUAL = 'EQUAL'                # ==
+    NOT_EQUAL = 'NOT_EQUAL'        # !=
+    GREATER = 'GREATER'            # >
+    LESS = 'LESS'                  # <
+    GREATER_EQUAL = 'GREATER_EQUAL'  # >=
+    LESS_EQUAL = 'LESS_EQUAL'        # <=
 
     # Logical operators
     AND = 'AND'  # &&
     OR = 'OR'    # ||
     NOT = 'NOT'  # !
     
+    # Dot operator (optional, for things like object.property or arr.length)
+    DOT = 'DOT'
+    
     # End of file
     EOF = 'EOF'
+
 
 class Token:
     """Token representation"""
