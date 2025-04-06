@@ -1,0 +1,99 @@
+# Example program demonstrating the language features
+
+a = 10;
+b = 20;
+print("Result of +, -, *, /: ");
+
+c = a + b;
+print(c);
+
+c =  a - b;
+print(c);
+
+c = a * b;
+print(c);
+
+c = a / b;
+print(c);
+
+# Conditional statements
+print("Conditional statements:");
+if (a > b) {
+    print("a is greater than b");
+} elseif (a < b) {
+    print("a is less than b");
+} else {
+    print("a is equal to b");
+}
+
+# While loop and For loop
+print("While loop printing numbers from 1 to 5:");
+i = 0;
+while (i < 5) {
+    print(i);
+    i = i + 1;
+}
+
+print("For loop printing array elements:");
+arr = ["Hey", 2, 12/33, "Hello", 5];
+for (i = 0; i < 5; i = i + 1) {
+    print(arr[i]);
+}
+
+# Array examples
+arr = [1, 2, 3, 4, 5];
+print("Array elements:");
+print(arr);
+
+# Access array element
+print("Array element at index 0 and 4:");
+print(arr[0]); # Should print 1
+print(arr[4]); # Should print 5
+
+# Array with mixed types
+mixed = ["hello", 42, "world"];
+print("Mixed array elements:");
+print(mixed);
+
+# Function to sum an array
+function sum(nums) {
+    total = 0;
+    for (i = 0; i < 5; i = i + 1) {
+        total = total + nums[i];
+    }
+    return total;
+}
+
+print("Sum of array elements:");
+result = sum(arr);
+print(result); # Should print 15
+
+# Function with multiple parameters
+function add(a, b) {
+    return a + b;
+}
+
+print("Addition of 5 and 10 using function:");
+print(add(5, 10)); # Should print 15
+
+# Function to calculate factorial
+function factorial(n) {
+    res = 1;
+    for (i = 1; i <= n; i = i + 1) {
+        res = res * i;
+    }
+    return res;
+}
+
+print("Factorial of 5 using function:");
+print(factorial(5)); # Should print 120
+
+# Function using arrays
+function getAverage(nums) {
+    count = 5;
+    sum_ = sum(nums);
+    return sum_ / count;
+}
+
+print("Average of array elements using function:");
+print(getAverage(arr)); # Should print average of array elements
