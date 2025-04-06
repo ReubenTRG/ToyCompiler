@@ -6,7 +6,7 @@ class AST:
     """Base AST node class"""
     def __init__(self, token=None):
         self.token = token  # For error reporting
-
+    
     @property
     def position(self):
         if self.token:
@@ -53,25 +53,25 @@ class Assign(AST):
         self.left = left
         self.op = op
         self.right = right
-
+        
 class Print(AST):
     """Print statement node"""
     def __init__(self, token, expr):
         super().__init__(token)
         self.expr = expr
-
+        
 class Compound(AST):
     """Multiple statements node"""
     def __init__(self):
         super().__init__()
         self.children = []
-
+        
 class Block(AST):
     """Code block node (for if/while bodies)"""
     def __init__(self, token, statements):
         super().__init__(token)
         self.statements = statements
-
+        
 class If(AST):
     def __init__(self, condition, if_block, elseif_blocks=None, else_block=None):
         self.condition = condition
@@ -79,6 +79,7 @@ class If(AST):
         self.elseif_blocks = elseif_blocks or []  # List of (Condition, Block)
         self.else_block = else_block
 
+        
 class While(AST):
     """While loop node"""
     def __init__(self, token, condition, block):
@@ -94,7 +95,7 @@ class For(AST):
         self.condition = condition
         self.increment = increment
         self.block = block
-
+        
 class Condition(AST):
     """Condition node (for if and while statements)"""
     def __init__(self, left, op, right):
@@ -102,7 +103,7 @@ class Condition(AST):
         self.left = left
         self.op = op
         self.right = right
-
+        
 class NoOp(AST):
     """Empty statement"""
     pass
@@ -114,48 +115,36 @@ class StringIndex(AST):
         self.string = string
         self.index = index
 
-# ---- Array Support ----
-
-class ArrayDecl(AST):
-    """Array declaration node"""
-    def __init__(self, name_token, size_expr):
-        super().__init__(name_token)
-        self.name = name_token.value
-        self.size = size_expr
+class Array(AST):
+    """Array literal node"""
+    def __init__(self, token, elements):
+        super().__init__(token)
+        self.elements = elements  # List of expressions
 
 class ArrayAccess(AST):
-    """Array access node"""
-    def __init__(self, array_var, index_expr):
-        super().__init__(array_var.token)
-        self.array = array_var
-        self.index = index_expr
+    """Array element access node"""
+    def __init__(self, array, index):
+        super().__init__()
+        self.array = array
+        self.index = index
 
-class ArrayAssign(AST):
-    """Array element assignment node"""
-    def __init__(self, array_access, value):
-        super().__init__(array_access.token)
-        self.array_access = array_access
-        self.value = value
-
-# ---- Function Support ----
-
-class FuncDecl(AST):
+class FunctionDecl(AST):
     """Function declaration node"""
-    def __init__(self, name_token, params, body):
-        super().__init__(name_token)
-        self.name = name_token.value
-        self.params = params  # List of Var nodes
-        self.body = body      # Block or Compound
+    def __init__(self, token, name, params, body):
+        super().__init__(token)
+        self.name = name          # Function name (string)
+        self.params = params      # List of parameter names
+        self.body = body          # Block of statements
 
-class FuncCall(AST):
+class FunctionCall(AST):
     """Function call node"""
-    def __init__(self, name_token, args):
-        super().__init__(name_token)
-        self.name = name_token.value
-        self.args = args  # List of expressions
+    def __init__(self, token, name, args):
+        super().__init__(token)
+        self.name = name          # Function name (string)
+        self.args = args          # List of argument expressions
 
 class Return(AST):
     """Return statement node"""
-    def __init__(self, token, expr):
+    def __init__(self, token, expr=None):
         super().__init__(token)
-        self.expr = expr
+        self.expr = expr          # Expression to return (can be None)
