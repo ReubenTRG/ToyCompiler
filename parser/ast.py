@@ -27,6 +27,12 @@ class Number(AST):
         super().__init__(token)
         self.value = token.value
 
+class String(AST):
+    """String literal node"""
+    def __init__(self, token):
+        super().__init__(token)
+        self.value = token.value
+
 class UnaryOp(AST):
     """Unary operation node"""
     def __init__(self, op, expr):
@@ -67,12 +73,12 @@ class Block(AST):
         self.statements = statements
         
 class If(AST):
-    """If statement node"""
-    def __init__(self, token, condition, if_block, else_block=None):
-        super().__init__(token)
+    def __init__(self, condition, if_block, elseif_blocks=None, else_block=None):
         self.condition = condition
         self.if_block = if_block
+        self.elseif_blocks = elseif_blocks or []  # List of (Condition, Block)
         self.else_block = else_block
+
         
 class While(AST):
     """While loop node"""
@@ -101,3 +107,10 @@ class Condition(AST):
 class NoOp(AST):
     """Empty statement"""
     pass
+
+class StringIndex(AST):
+    """String index access node"""
+    def __init__(self, string, index):
+        super().__init__()
+        self.string = string
+        self.index = index

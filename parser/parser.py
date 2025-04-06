@@ -4,7 +4,7 @@ Parser implementation for the Simple Compiler
 from lexer.token import TokenType
 from .ast import (
     AST, BinOp, Number, UnaryOp, Var, Assign, 
-    Print, Compound, Block, If, While, Condition, NoOp, For
+    Print, Compound, Block, If, While, Condition, NoOp, For, String, StringIndex
 )
 
 class Parser:
@@ -82,21 +82,28 @@ class Parser:
         return Block(token, statements)
     
     def if_statement(self):
-        """Parse an if statement"""
-        token = self.eat(TokenType.IF)
+        self.eat(TokenType.IF)
         self.eat(TokenType.LPAREN)
         condition = self.condition()
         self.eat(TokenType.RPAREN)
-        
         if_block = self.block()
-        
-        # Check for else
+
+        elseif_blocks = []
+        while self.current_token.type == TokenType.ELSEIF:
+            self.eat(TokenType.ELSEIF)
+            self.eat(TokenType.LPAREN)
+            elseif_condition = self.condition()
+            self.eat(TokenType.RPAREN)
+            elseif_block = self.block()
+            elseif_blocks.append((elseif_condition, elseif_block))
+
         else_block = None
         if self.current_token.type == TokenType.ELSE:
             self.eat(TokenType.ELSE)
             else_block = self.block()
-            
-        return If(token, condition, if_block, else_block)
+
+        return If(condition, if_block, elseif_blocks, else_block)
+
     
     def while_statement(self):
         """Parse a while loop"""
@@ -127,9 +134,9 @@ class Parser:
     
     def condition(self):
         """Parse a condition (for if/while)"""
-        print(f"Parsing condition. Current token: {self.current_token}")
+        # print(f"Parsing condition. Current token: {self.current_token}")
         left = self.expr()
-        print(f"After expr. Left: {left}")
+        # print(f"After expr. Left: {left}")
 
         # Handle comparison operators first
         if self.current_token.type in (
@@ -141,7 +148,7 @@ class Parser:
             self.eat(op.type)
             right = self.expr()
             left = Condition(left, op, right)
-            print(f"After comparison. Left: {left}")
+            # print(f"After comparison. Left: {left}")
 
         # Handle logical operators (AND, OR)
         while self.current_token.type in (TokenType.AND, TokenType.OR):
@@ -149,16 +156,16 @@ class Parser:
             self.eat(op.type)
             right = self.expr()
             left = Condition(left, op, right)
-            print(f"After logical op. Left: {left}")
+            # print(f"After logical op. Left: {left}")
 
         # Handle NOT operator
         if self.current_token.type == TokenType.NOT:
             op = self.current_token
             self.eat(TokenType.NOT)
             left = Condition(left, op)
-            print(f"After NOT. Left: {left}")
+            # print(f"After NOT. Left: {left}")
 
-        print(f"Condition returning: {left}")
+        # print(f"Condition returning: {left}")
         return left
         
     def print_statement(self):
@@ -215,6 +222,9 @@ class Parser:
         if token.type == TokenType.NUMBER:
             self.eat(TokenType.NUMBER)
             return Number(token)
+        elif token.type == TokenType.STRING:
+            self.eat(TokenType.STRING)
+            return String(token)
         elif token.type == TokenType.LPAREN:
             self.eat(TokenType.LPAREN)
             node = self.expr()
@@ -228,6 +238,11 @@ class Parser:
             return UnaryOp(token, self.factor())
         elif token.type == TokenType.IDENTIFIER:
             token = self.eat(TokenType.IDENTIFIER)
+            if self.current_token.type == TokenType.LBRACKET: #Handle string index
+                self.eat(TokenType.LBRACKET)
+                index = self.expr()
+                self.eat(TokenType.RBRACKET)
+                return StringIndex(Var(token), index)
             return Var(token)
         elif token.type == TokenType.NOT: # Handle NOT
             self.eat(TokenType.NOT)
